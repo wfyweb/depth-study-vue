@@ -1,9 +1,19 @@
+import Link from "./link"
+import View from "./view"
+
 let Vue
 
 class Router {
   constructor(options) {
     // 保存用户的路由表
-    this.$options = options
+    this.$options = options 
+    const inital = window.location.hash.slice(1) || '/'
+    // current记录地址的hash
+    // this.current = inital
+    Vue.util.defineReactive(this,'current',inital)
+    window.addEventListener('hashchange',()=>{
+      this.current = window.location.hash.slice(1)
+    })
   }
 }
 Router.install = function(_Vue){
@@ -18,27 +28,8 @@ Router.install = function(_Vue){
     }
   })
   // 2. 注册 router-link router-view两个组件
-  Vue.component('router-link', {
-    render(h){
-      return h(
-        'a',
-        {
-          attrs:{
-            href: '#' + this.$attrs.to
-          }
-        },
-        this.$slots.default
-      )
-    }
-  })
-  Vue.component('router-view', {
-    render (h) {
-      return h(
-        'div',
-        'view'
-      )
-    }
-  })
+  Vue.component('router-link', Link)
+  Vue.component('router-view', View)
 }
 
 
