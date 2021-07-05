@@ -16,6 +16,14 @@ export default {
   name: 'Home',
   components: {
     // HelloWorld
+  },
+  created() {
+    console.log(this.$router);
+    console.log(this);
+  },
+  mounted() {
+    console.log(this.$router);
+    console.log(this);
   }
 }
 </script>
