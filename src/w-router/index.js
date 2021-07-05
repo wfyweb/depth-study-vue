@@ -35,16 +35,16 @@ const routes = [
             )
           }
         },
-        // children:[
-        //   {
-        //     path: '/about/info/1',
-        //     component: {
-        //       render (h) {
-        //         return h('div', {},'render info page1')
-        //       }
-        //     },
-        //   }
-        // ]
+        children:[
+          {
+            path: '/about/info/1',
+            component: {
+              render (h) {
+                return h('div', {},'render info page1')
+              }
+            },
+          }
+        ]
       }
     ]
   }
