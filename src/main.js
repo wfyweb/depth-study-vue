@@ -3,7 +3,9 @@ import App from './App.vue'
 import './plugins/element.js'
 // import router from './router'
 import router from './w-router/index'
-import store from './store'
+// import store from './store'
+import store from './w-store'
+
 
 Vue.config.productionTip = false
 // 事件总线
