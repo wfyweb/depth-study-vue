@@ -4,10 +4,26 @@ class Store {
   constructor(options) {
     // options.state 包装为响应式对象
     // $$state 属性vue不会代理
+    this.getters = {}
+    const store = this
+    // 记录用户定义的getters函数
+    const wrappedGetters = options.getters
+    const computed = {}
+    // 遍历生产计算属性computed缓存
+    for (const key in wrappedGetters) {
+      computed[key] = function() {
+        return wrappedGetters[key](store.state)
+      }
+      // 只为getters定义只读属性
+      Object.defineProperty(store.getters, key, {
+        get: () => store._vm[key]
+      })
+    }
     this._vm = new Vue({
       data:{
         $$state: options.state
       },
+      computed
     })
     this._mutations = options.mutations
     this._actions = options.actions
