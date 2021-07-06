@@ -34,7 +34,7 @@ class Store {
     return this._vm._data.$$state
   }
   set state(v) {
-    console.error('请勿直接操作state')
+    console.error('please use replaceState to reset state')
   }
   commit(type,payload) {
     const fn = this._mutations[type]

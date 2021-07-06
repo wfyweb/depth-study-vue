@@ -111,3 +111,110 @@ SPA应用中，url发生变化时候，页面内容切换，但是页面不会�
     1. curren顶层和path顶层结束递归
     2. curren中包含path 将此路由增加到matched中
     3. 当前路由包含children再次调用match方法
+---
+### vuex的原理
+
+Vuex`集中式`存储管理应用的所有组件的状态，并以相应的规则保证状态可以`可预测`的方法发生变化。
+#### 核心概念
+- state 状态，数据
+- mutations 更改状态的函数
+- actions 异步操作
+- store 包含以上概念的容器
+
+#### 需求分析
+- 实现插件
+  - 实现Store类
+    - 维持一个响应式状态state
+    - 实现commit函数
+    - 实现dispatch函数
+    - getters 属性
+  - 挂载$store
+
+### code
+
+1. 初始化声明Store类，创建install方法，导出Store类和install方法
+
+2. 全局保存Vue的构造函数，注册$store,通过mixin混入的方法注册，
+
+3. `注意`需要在根目录中判断注册store
+
+4. 暴漏state属性，并对传入的state选项做响应式处理。
+
+5. 如果使用Vue.utils.definReactive对state可以设置state为响应式数据，但是有什么问题呐？
+
+6. `当前场景希望 state 数据包装隐藏起来，不希望用户可以接触到state，期望以一种可预测的方式去修改。也就是用户尽量不要访问state，如果访问我可以给警告，期望以commit或者dispatch的方式去修改state`
+
+7. 使用第二中响应的方法，`借鸡生蛋`使用new Vue的方式 设置data的属性包装成响应式的数据。
+
+8. 所以vuex是耦合的，也就是官方说的给vue量身打造的状态管理插件。
+
+9. 接下来new Vue后定义_vm, 希望用户明白不要访问它，使用$$state作为key，在vue实例中不做代理，给用户 get state() 这种方法暴漏api，是只读的属性。set state() 给出警告。
+
+   ```js
+   // 对state包装响应式
+    this._vm = new Vue({
+      data:{
+        // $$符号Vue不会代理，不希望vue属性上有这个属性，只做响应式,
+        $$state: options.state
+      },
+    })
+    get state() {
+      return this._vm._data.$$state
+    }
+    set state(v) {
+      console.error('please use replaceState to reset state')
+    }
+   ```
+
+10. 实现commit，dispatch函数。在Store构造函数中保存mutations 和actions选项。
+
+11. 然后在commit函数中 接收type和payload ，通过mutations[type]拿到用户定义的函数。把这个函数体返回，fn(this.state, payload)
+
+12. 同理 dispatch函数也是类似方法，不过要注意返回的函数，用户调用时候参数不同 第一个参数是store实例，然后才是paylod 
+
+    ```js
+      commit(type, payload) {
+        const entry = this._mutations[type]
+        if(!entry){
+            console.error('unknown mutations!')
+          return 
+        }
+        entry(this.state, payload)
+      }
+      dispatch (type, payload) {
+        const entry = this._actions[type]
+        if (!entry) {
+            console.error('unknown actions!')
+          return
+        }
+        entry(this, payload)
+      }
+    ```
+
+13. 实现gettes功能，为了是实现数据缓存，需要借助computed方法。
+
+14. 定义computed选项，通过遍历options.getters选项，获取用户定义的getter函数
+
+15. 然后转换为computed可以使用的无参数形式
+
+16. 通过Object.defineProperty()方法定义getters为只读属性
+
+    ```js
+      this.getters = {}
+        const store = this
+        // 记录用户定义的getters函数
+        const wrappedGetters = options.getters
+        const computed = {}
+        // 遍历生产计算属性computed缓存
+        for (const key in wrappedGetters) {
+          computed[key] = function() {
+            return wrappedGetters[key](store.state)
+          }
+          // 只为getters定义只读属性
+          Object.defineProperty(store.getters, key, {
+            get: () => store._vm[key]
+          })
+        }
+    ```
+
+    
