@@ -70,6 +70,16 @@ class Compile{
       }
     })
   }
+  // 节点，表达式， 指令
+  updateCompile (node, exp, dir) {
+    // 创建
+    const fn = this[`${dir}Update`]
+    fn && fn(node, this.$vm[exp])
+    // 更新
+    new Watcher(this.$vm, exp, (val) => {
+      fn && fn(node, val)
+    })
+  }
   compileText (node) {
     // node.textContent = this.$vm[RegExp.$1]
     this.updateCompile(node, RegExp.$1, 'text')
@@ -81,34 +91,35 @@ class Compile{
   html (node, exp) {
     // node.innerHTML = this.$vm[exp]
     this.updateCompile(node, exp, 'html')
-
   }
-  // 节点，表达式， 指令
-  updateCompile (node, exp, dir) {
-    // 创建
-    const fn = this[`${dir}Update`]
-    fn && fn(node, this.$vm[exp])
-    // 更新
-    new Watcher(this.$vm, exp, (val)=>{
-      fn && fn(node, val)
+  model(node, exp) {
+    this.updateCompile(node, exp, 'model')
+    // 赋值给data
+    node.addEventListener('input',(e)=>{
+      this.$vm[exp] = e.target.value
     })
   }
+
   textUpdate (node, value) {
     node.textContent = value
   }
   htmlUpdate (node, value) {
     node.innerHTML = value
   }
+  modelUpdate (node, value) {
+    // 表单元素
+    node.value = value
+  }
   // 增加事件
   click (node,event,exp){
-    const methods = this.$vm.$methods
-    Object.keys(methods).forEach(key=>{
-      if(key === exp){
-        node.addEventListener(`${event}`,()=>{
-          methods[exp].call(this.$vm)
-        })
-      }
-    })
+    const fn = this.$vm.$methods && this.$vm.$methods[exp]
+    if (fn) {
+      node.addEventListener(`${event}`, () => {
+        fn.call(this.$vm)
+      })
+    }else{
+      console.error('Detecting events in methods')
+    }
   }
   isInter(node) {
     return node.nodeType === 3 && /\{\{(.*)\}\}/.test(node.textContent);

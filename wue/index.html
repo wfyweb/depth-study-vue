@@ -11,8 +11,9 @@
 <body>
   <div id="app">
     <p>{{counter}}</p>
-    <p w-text="counter" @click="add"></p>
+    <p w-text="counter" @click="adds"></p>
     <p w-html="desc"></p>
+    <input type="text" w-model="desc">
   </div>
   <script src="./reactive.js"></script>
   <script src="./wue.js"></script>
@@ -24,7 +25,7 @@
         desc: '<span>测试HTML指令</span>'
       },
       methods:{
-        add(){
+        adds(){
           this.counter++
           console.log(this.counter,'@add')
         }
