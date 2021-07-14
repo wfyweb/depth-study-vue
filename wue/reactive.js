@@ -1,10 +1,12 @@
 // 实现响应式
 function defineReactive(obj, key, val) {
+  const dep = new Dep()
   observe(val)
   Object.defineProperty(obj, key, {
     get() {
       console.log('get:', key,'val:',val)
-     return val
+      Dep.target && dep.addDep(Dep.target)
+      return val
     },
     set(v){
       if(val !== v) {
@@ -12,7 +14,9 @@ function defineReactive(obj, key, val) {
         observe(v)
         val = v
         // update
-        watchers.map(watch=>watch.update())
+        // watchers.map(watch=>watch.update())
+        // 数据改变，通知watcher更新渲染
+        dep.notify()
       }
     }
   })

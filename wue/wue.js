@@ -118,19 +118,35 @@ class Compile{
 // watcher 更新在哪里调用？
 // set?  最好在compile里面，当数据变化时候调用watcher
 // 监听数据变化 更新update
-const watchers = []
 class Watcher {
   constructor(vm, key, updateFn) {
     // 保存options
     this.$vm = vm
     this.$key = key
     this.updateFn = updateFn
-    watchers.push(this)
+    // 创建watcher 就添加到dep
+    Dep.target = this
+    this.$vm[this.$key]
+    Dep.target = null
     // 调用更新函数
     this.update()
   }
   update() {
     this.updateFn.call(this.$vm, this.$vm[this.$key] )
+  }
+}
+
+// 依赖收集
+class Dep {
+  constructor() {
+    this.deps = []
+  }
+  // dep代表这watcher实例，一个dep可以管理多个watcher
+  addDep(dep) {
+    this.deps.push(dep)
+  }
+  notify() {
+    this.deps.forEach(dep=> dep.update())
   }
 }
 
