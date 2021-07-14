@@ -4,6 +4,7 @@ class Wue{
     // 1.保存options选项
     this.$options = options
     this.$data = options.data
+    this.$methods = options.methods
     // 2. data数据做响应式处理
     observe(this.$data)
     // 2.5 对vue实例的数据做代理
@@ -57,10 +58,15 @@ class Compile{
     Array.from(nodeAttrs).forEach(attr=>{
       const attrName = attr.name
       const exp = attr.value
-      // 判断attrName是否是指令或动态件等
+      // 2.判断attrName是否是指令或动态件等
       if(attrName.startsWith('w-')) {
         const dir = attrName.substring(2)
         this[dir] && this[dir](node, exp)
+      }
+      // 3.判断事件
+      if (attrName.startsWith('@')) {
+        const event = attrName.substring(1)
+        this[event] && this[event](event,exp)
       }
 
     })
@@ -70,6 +76,17 @@ class Compile{
   }
   html (node, exp) {
     node.innerHTML = this.$vm[exp]
+  }
+  // 增加事件
+  click (event,exp){
+    const methods = this.$vm.$methods
+    Object.keys(methods).forEach(key=>{
+      if(key === exp){
+        document.addEventListener(`${event}`,()=>{
+          methods[exp].call(this.$vm)
+        })
+      }
+    })
   }
   isInter(node) {
     return node.nodeType === 3 && /\{\{(.*)\}\}/.test(node.textContent);

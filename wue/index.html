@@ -11,7 +11,7 @@
 <body>
   <div id="app">
     <p>{{counter}}</p>
-    <p w-text="counter"></p>
+    <p w-text="counter" @click="add"></p>
     <p w-html="desc"></p>
   </div>
   <script src="./reactive.js"></script>
@@ -22,6 +22,12 @@
       data: {
         counter: 2,
         desc: '<span>测试HTML指令</span>'
+      },
+      methods:{
+        add(){
+          this.counter++
+          console.log(this.counter,'@add')
+        }
       }
     })
 
