@@ -1,3 +1,15 @@
+// 数组响应式 ['push', 'pop', 'shift', 'unshift','spilce','sort','reverse']
+const originalProto = Array.prototype
+// 备份原型
+const arrayProto = Object.create(originalProto);
+['push', 'pop', 'shift', 'unshift', 'spilce', 'sort', 'reverse'].forEach(method=>{
+  arrayProto[method] = function() {
+    // 原始操作
+    originalProto[method].apply(this, arguments)
+    // 覆盖操作：通知更新
+    console.log('set=>' + method + '=>' + JSON.stringify(arguments));
+  }
+})
 // 实现响应式
 function defineReactive(obj, key, val) {
   const dep = new Dep()
@@ -25,9 +37,21 @@ function observe (obj) {
   if (typeof obj !== 'object' || obj == null){
     return obj
   }
-  Object.keys(obj).forEach(key=>{
-    defineReactive(obj, key, obj[key])
-  })
+  if (Array.isArray(obj)){
+    // 覆盖原型，替换7个变更操作
+    obj.__proto__ = arrayProto
+    // 对数组的内部元素执行响应式
+    // const kes = Object.keys(obj)
+    // for (let i = 0; i < kes.length;i++) {
+    //   observe(obj[i])
+    // }
+    Object.keys(obj).forEach(item => observe(item))
+  }else{
+    Object.keys(obj).forEach(key => {
+      defineReactive(obj, key, obj[key])
+    })
+  }
+  
 }
 function set(obj, key, val) {
   defineReactive(obj, key, val)
@@ -58,3 +82,7 @@ function set(obj, key, val) {
 // set(obj, 'boss', 'boss')
 // obj.boss
 // obj.boss = 'bossss'
+// var obj = [1]
+// observe(obj)
+
+// obj.push(3)
