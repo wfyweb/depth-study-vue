@@ -9,7 +9,7 @@ class Wue{
     // 2.5 对vue实例的数据做代理
     this.proxy(this, '$data')
     // 3. compile编译
-    new compile(options.el, this)
+    new Compile(options.el, this)
 
   }
   proxy(vm, key) {
@@ -40,6 +40,9 @@ class Compile{
       if(node.nodeType === 1){
         // 元素
         this.compileElement(node)
+        if(node.childNodes.length) {
+          this.compile(node)
+        }
       }
       if(this.isInter(node)){
         // 插值文本
@@ -50,7 +53,6 @@ class Compile{
   // 编译Element
   compileElement(node) {
     // 1.获取当前元素的所有属性，并判断他们是不是动态的
-
     const nodeAttrs = node.attributes
     Array.from(nodeAttrs).forEach(attr=>{
       const attrName = attr.name
@@ -64,16 +66,16 @@ class Compile{
     })
   }
   text (node, exp){
-    node.textCenter = this.$vm[exp]
+    node.textContent = this.$vm[exp]
   }
   html (node, exp) {
     node.innerHTML = this.$vm[exp]
   }
   isInter(node) {
-    return node.nodeType === 3 && /\{\{(.*)\}\}/.test(node.textCentent);
+    return node.nodeType === 3 && /\{\{(.*)\}\}/.test(node.textContent);
   }
   compileText(node) {
-    node.textCenter = this.$vm[RegExp.$1]
+    node.textContent = this.$vm[RegExp.$1]
   }
 }
 
