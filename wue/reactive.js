@@ -11,6 +11,8 @@ function defineReactive(obj, key, val) {
         console.log('set:', key, 'val:', v)
         observe(v)
         val = v
+        // update
+        watchers.map(watch=>watch.update())
       }
     }
   })

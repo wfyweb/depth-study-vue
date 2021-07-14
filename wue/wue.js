@@ -66,23 +66,45 @@ class Compile{
       // 3.判断事件
       if (attrName.startsWith('@')) {
         const event = attrName.substring(1)
-        this[event] && this[event](event,exp)
+        this[event] && this[event](node,event,exp)
       }
-
     })
   }
+  compileText (node) {
+    // node.textContent = this.$vm[RegExp.$1]
+    this.updateCompile(node, RegExp.$1, 'text')
+  }
   text (node, exp){
-    node.textContent = this.$vm[exp]
+    // node.textContent = this.$vm[exp]
+    this.updateCompile(node, exp, 'text')
   }
   html (node, exp) {
-    node.innerHTML = this.$vm[exp]
+    // node.innerHTML = this.$vm[exp]
+    this.updateCompile(node, exp, 'html')
+
+  }
+  // 节点，表达式， 指令
+  updateCompile (node, exp, dir) {
+    // 创建
+    const fn = this[`${dir}Update`]
+    fn && fn(node, this.$vm[exp])
+    // 更新
+    new Watcher(this.$vm, exp, (val)=>{
+      fn && fn(node, val)
+    })
+  }
+  textUpdate (node, value) {
+    node.textContent = value
+  }
+  htmlUpdate (node, value) {
+    node.innerHTML = value
   }
   // 增加事件
-  click (event,exp){
+  click (node,event,exp){
     const methods = this.$vm.$methods
     Object.keys(methods).forEach(key=>{
       if(key === exp){
-        document.addEventListener(`${event}`,()=>{
+        node.addEventListener(`${event}`,()=>{
           methods[exp].call(this.$vm)
         })
       }
@@ -91,8 +113,24 @@ class Compile{
   isInter(node) {
     return node.nodeType === 3 && /\{\{(.*)\}\}/.test(node.textContent);
   }
-  compileText(node) {
-    node.textContent = this.$vm[RegExp.$1]
+  
+}
+// watcher 更新在哪里调用？
+// set?  最好在compile里面，当数据变化时候调用watcher
+// 监听数据变化 更新update
+const watchers = []
+class Watcher {
+  constructor(vm, key, updateFn) {
+    // 保存options
+    this.$vm = vm
+    this.$key = key
+    this.updateFn = updateFn
+    watchers.push(this)
+    // 调用更新函数
+    this.update()
+  }
+  update() {
+    this.updateFn.call(this.$vm, this.$vm[this.$key] )
   }
 }
 
